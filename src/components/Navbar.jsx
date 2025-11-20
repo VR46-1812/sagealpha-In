@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const menuRef = useRef(null);
+  const toggleRef = useRef(null);
 
   const links = [
     { to: "/", label: "Home" },
@@ -15,11 +17,36 @@ export default function Navbar() {
     { to: "/contact", label: "Contact" },
   ];
 
+  // body scroll lock, escape key, click-outside to close
+  useEffect(() => {
+    const body = document.body;
+    if (open) body.classList.add("menu-open");
+    else body.classList.remove("menu-open");
+
+    function onKey(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    function onDocClick(e) {
+      const menuEl = menuRef.current;
+      const toggleEl = toggleRef.current;
+      if (!menuEl || !toggleEl) return;
+      if (!menuEl.contains(e.target) && !toggleEl.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("click", onDocClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("click", onDocClick);
+      body.classList.remove("menu-open");
+    };
+  }, [open]);
+
   return (
     <>
-      <nav className="navbar">
-        
-        {/* LEFT SIDE — LOGO ONLY (bigger + clickable) */}
+      <nav className="navbar" role="navigation" aria-label="Main navigation">
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Link
             to="/"
@@ -27,18 +54,14 @@ export default function Navbar() {
               display: "flex",
               alignItems: "center",
               textDecoration: "none",
-              color: "inherit"
+              color: "inherit",
             }}
+            aria-label="Home"
           >
             <img
               src={logo}
               alt="SageAlpha Logo"
-              style={{
-                width: 100,       // 🔥 Bigger
-                height: 100,      // 🔥 Bigger
-                objectFit: "contain",
-                borderRadius: 12
-              }}
+              className="brand-img"
             />
           </Link>
         </div>
@@ -46,7 +69,7 @@ export default function Navbar() {
         {/* RIGHT SIDE — NAVLINKS */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div className="navlinks" aria-hidden={open}>
-            {links.map(l => (
+            {links.map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
@@ -65,20 +88,22 @@ export default function Navbar() {
                 background: "linear-gradient(90deg,var(--accent-1),var(--accent-2))",
                 color: "#022",
                 fontWeight: 800,
-                marginLeft: 6
+                marginLeft: 6,
               }}
             >
               Sign In
             </Link>
           </div>
 
-          {/* HAMBURGER ICON */}
+          {/* HAMBURGER ICON (visible on mobile via CSS) */}
           <div
-            className="hamburger"
-            onClick={() => setOpen(s => !s)}
+            ref={toggleRef}
+            className="hamburger nav-toggle"
+            onClick={() => setOpen((s) => !s)}
             aria-label="menu toggle"
             role="button"
             tabIndex={0}
+            aria-expanded={open}
           >
             <span />
             <span />
@@ -87,48 +112,44 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* MOBILE OVERLAY MENU */}
-      {open && (
-        <div
-          style={{
-            position: "fixed",
-            top: 82,
-            right: 16,
-            zIndex: 70,
-            background:
-              "linear-gradient(180deg, rgba(6,16,26,0.95), rgba(7,20,34,0.9))",
-            padding: 12,
-            borderRadius: 12,
-            boxShadow: "0 12px 40px rgba(2,6,23,0.6)"
-          }}
-        >
-          {links.map(l => (
-            <div key={l.to} style={{ margin: 8 }}>
-              <Link
-                to={l.to}
-                onClick={() => setOpen(false)}
-                style={{
-                  color: "var(--text)",
-                  textDecoration: "none",
-                  fontWeight: 700
-                }}
-              >
-                {l.label}
-              </Link>
-            </div>
+      {/* MOBILE OVERLAY MENU - controlled by CSS so it's hidden on desktop */}
+      <div
+        ref={menuRef}
+        className={`nav-menu${open ? " open" : ""}`}
+        aria-hidden={!open}
+        role="menu"
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {links.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              onClick={() => setOpen(false)}
+              role="menuitem"
+              style={{
+                color: "var(--text)",
+                textDecoration: "none",
+                fontWeight: 700,
+                display: "block",
+              }}
+            >
+              {l.label}
+            </Link>
           ))}
 
-          <div style={{ marginTop: 6 }}>
+          <div style={{ marginTop: 8 }}>
             <Link
               to="/auth/signin"
               onClick={() => setOpen(false)}
-              style={{ color: "var(--text)", fontWeight: 700 }}
+              style={{ color: "var(--text)", fontWeight: 700, display: "block" }}
             >
               Sign In
             </Link>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="header-placeholder" aria-hidden />
     </>
   );
 }

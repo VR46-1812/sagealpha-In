@@ -1,36 +1,16 @@
 // src/pages/Contact.jsx
 import React, { useEffect, useRef, useState } from "react";
 
-/**
- * Contact page with interactive embedded Google Maps and Formspree integration.
- *
- *
- * The map preview is an iframe centered on the address below. Clicking anywhere
- * on the map opens Google Maps in a new tab/app for full interaction.
- */
-
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpaydlj"; // <-- update this
-
-// Use either a human-readable address or lat,lng. Lat/lng is more precise.
- const ADDRESS_TEXT = `SNo 8 1A 1B Office No 110, ANP Commerce Center Shivar gardan, Pimpri Saudagar, Pune, Maharashtra`;
-// Example lat/lng fallback (uncomment and use if you prefer coordinates):
-// const LAT = 18.6075, LON = 73.8078;
-// const MAP_QUERY = `${LAT},${LON}`;
-
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xwpaydlj";
+const ADDRESS_TEXT = `SNo 8 1A 1B Office No 110, ANP Commerce Center Shivar gardan, Pimpri Saudagar, Pune, Maharashtra`;
 const LAT = 18.595763914395885;
 const LON = 73.78771371378768;
-const mapsQuery = `${LAT},${LON}`; // no encodeURIComponent needed for numbers
-const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
-const iframeSrc = `https://www.google.com/maps?q=${mapsQuery}&z=17&output=embed`;
-
-
-
- const MAP_QUERY = encodeURIComponent(ADDRESS_TEXT);
- const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${MAP_QUERY}`;
- const IFRAME_SRC = `https://www.google.com/maps?q=${MAP_QUERY}&z=15&output=embed`;
+const mapsQuery = `${LAT},${LON}`;
+const MAP_QUERY = encodeURIComponent(ADDRESS_TEXT);
+const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${MAP_QUERY}`;
+const IFRAME_SRC = `https://www.google.com/maps?q=${MAP_QUERY}&z=15&output=embed`;
 
 export default function Contact() {
-  // form state
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -46,7 +26,6 @@ export default function Contact() {
   const textareaRef = useRef(null);
 
   useEffect(() => {
-    // autosize initial
     autosize();
   }, []);
 
@@ -72,7 +51,6 @@ export default function Contact() {
   function simpleValidate() {
     if (!form.name.trim()) return "Please enter your name.";
     if (!form.email.trim()) return "Please enter your email.";
-    // simple email check
     const re = /\S+@\S+\.\S+/;
     if (!re.test(form.email)) return "Please enter a valid email address.";
     if (form.message.trim().length < 6) return "Please write a longer message (min 6 chars).";
@@ -83,7 +61,6 @@ export default function Contact() {
     e.preventDefault();
     setStatus({ loading: false, ok: null, msg: "" });
 
-    // honeypot
     if (form._gotcha) {
       setStatus({ loading: false, ok: false, msg: "Spam detected." });
       return;
@@ -139,7 +116,8 @@ export default function Contact() {
     <section style={{ paddingTop: 18 }} className="container">
       <h2 className="reveal">Contact Us</h2>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, marginTop: 18 }}>
+      {/* ADDED: use .contact-grid so responsive CSS controls mobile stacking */}
+      <div className="contact-grid">
         {/* LEFT: Form */}
         <div>
           <form
@@ -173,7 +151,6 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* honeypot - keep hidden */}
             <input name="_gotcha" value={form._gotcha} onChange={onChange} style={{ display: "none" }} autoComplete="off" />
 
             <div style={{ marginTop: 12, display: "flex", gap: 12, alignItems: "center" }}>
@@ -225,7 +202,6 @@ export default function Contact() {
             <div style={{ marginBottom: 8, color: "var(--muted)" }}>Location</div>
 
             <div className="map-wrap" style={{ borderRadius: 10, overflow: "hidden", boxShadow: "inset 0 0 40px rgba(0,0,0,0.4)" }}>
-              {/* iframe preview */}
               <iframe
                 title="SageAlpha location"
                 src={IFRAME_SRC}
@@ -237,7 +213,6 @@ export default function Contact() {
                 referrerPolicy="no-referrer-when-downgrade"
               />
 
-              {/* overlay link: clicking anywhere opens Google Maps in new tab/app */}
               <a
                 className="map-overlay-link"
                 href={MAPS_URL}
